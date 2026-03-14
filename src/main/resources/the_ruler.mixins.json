@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "package": "com.iafenvoy.ruler.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "minVersion": "0.8",
+  "client": [
+  ],
+  "mixins": [
+    "GameRuleCommandMixin",
+    "GameRules$RuleAccessor",
+    "GameRulesMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

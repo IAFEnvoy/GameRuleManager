@@ -15,8 +15,12 @@
   "license": "${mod_license}",
   "environment": "*",
   "entrypoints": {
+    "main": [
+      "com.iafenvoy.ruler._loader.fabric.TheRulerFabric"
+    ]
   },
   "mixins": [
+    "the_ruler.mixins.json"
   ],
   "depends": {
     "minecraft": [${supported_minecraft_versions}]
