@@ -1,22 +1,19 @@
-# Stonecutter Template
+This mod can lock any game rules in all saves. (Include modded ones)
 
-This is a multi-loader mod template for Fabric, Forge and NeoForge
+Fell free to use this mod in your modpack.
 
-## Supported versions
+## How to use
 
-- Fabric 1.14+
-- Forge 1.17+
-- NeoForge 1.20.5+
+For example, you want to force set `doDaylightCycle` to `false`
 
-## Before Use
+1.Open file `.minecraft/config/the_ruler.json`. If this file is not existed, create it.
 
-- Configure your project's metadata in `gradle.properties`.
-- If you want to use mixins, uncomment mixin processors in `build.forge.gradle.kts`, create mixin files and add to
-  `fabric.mod.json` and `neoforge.mods.toml`
+2.Write the following contents:
 
-## Useful Links
+```json
+{
+  "doDaylightCycle": false
+}
+```
 
-- Stonecutter docs: https://stonecutter.kikugie.dev/
-- Versions select guideline: https://stonecutter.kikugie.dev/wiki/start/#version-compatibility
-- Ceres (Fast dependencies search): https://ceres.mcdev.tech/
-- Parchment versions index: https://parchmentmc.org/docs/getting-started
+3.Run `/reload` (If you on a server) and rejoin the world.
