@@ -18,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
@@ -42,16 +41,6 @@ public enum GameRuleConfig implements ResourceManagerReloadListener {
 
     public static Map<String, ObjectBooleanPair<String>> get(ResourceKey<Level> level) {
         return CONFIG.getOrDefault(level, new HashMap<>());
-    }
-
-
-    public static Optional<ObjectBooleanPair<String>> getSingle(ResourceKey<Level> level, String key) {
-        Optional<ObjectBooleanPair<String>> result = Optional.ofNullable(CONFIG.get(level)).map(x -> x.get(key));
-        return result.isPresent() ? result : Optional.ofNullable(CONFIG.get(DEFAULT)).map(x -> x.get(key));
-    }
-
-    public static boolean isLocked(ResourceKey<Level> level, String key) {
-        return getSingle(level, key).map(ObjectBooleanPair::rightBoolean).orElse(false);
     }
 
     public static void loadConfig() {

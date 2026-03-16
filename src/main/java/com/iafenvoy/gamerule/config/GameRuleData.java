@@ -88,4 +88,14 @@ public class GameRuleData {
     public static Collection<ResourceKey<Level>> list() {
         return DATA.keySet();
     }
+
+    public static Optional<ObjectBooleanPair<String>> getSingle(ResourceKey<Level> level, String key) {
+        Optional<ObjectBooleanPair<String>> result = Optional.empty();
+        if (DATA.containsKey(level)) result = Optional.ofNullable(GameRuleConfig.get(level)).map(x -> x.get(key));
+        return result.isPresent() ? result : Optional.ofNullable(GameRuleConfig.getDefault()).map(x -> x.get(key));
+    }
+
+    public static boolean isLocked(ResourceKey<Level> level, String key) {
+        return getSingle(level, key).map(ObjectBooleanPair::rightBoolean).orElse(false);
+    }
 }

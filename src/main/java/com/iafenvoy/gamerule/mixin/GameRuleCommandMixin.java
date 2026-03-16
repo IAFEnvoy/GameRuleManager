@@ -1,6 +1,5 @@
 package com.iafenvoy.gamerule.mixin;
 
-import com.iafenvoy.gamerule.config.GameRuleConfig;
 import com.iafenvoy.gamerule.config.GameRuleData;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -19,7 +18,7 @@ public class GameRuleCommandMixin {
     @Inject(method = "setRule", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/GameRules$Value;setFromArgument(Lcom/mojang/brigadier/context/CommandContext;Ljava/lang/String;)V"), cancellable = true)
     private static <T extends GameRules.Value<T>> void onSetGameRule(CommandContext<CommandSourceStack> context, GameRules.Key<T> key, CallbackInfoReturnable<Integer> cir) {
         CommandSourceStack source = context.getSource();
-        if (GameRuleConfig.isLocked(source.getLevel().dimension(), key.getId())) {
+        if (GameRuleData.isLocked(source.getLevel().dimension(), key.getId())) {
             source.sendSuccess(() -> Component.literal("This gamerule has been locked by GameRule Manager, unlock it by changing lock key in value to false."), false);
             cir.setReturnValue(0);
         }
