@@ -19,6 +19,7 @@ repositories {
     maven("https://maven.parchmentmc.org") { name = "ParchmentMC" }
     maven("https://maven.terraformersmc.com/") { name = "ModMenu" }
     maven("https://maven.nucleoid.xyz/") { name = "Placeholder API" }
+    maven("https://api.modrinth.com/maven/") { name = "Modrinth Maven" }
 }
 
 dependencies {
@@ -31,6 +32,8 @@ dependencies {
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric-loader")}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric-api")}")
     modImplementation("com.terraformersmc:modmenu:${property("deps.mod_menu")}")
+
+    modImplementation("maven.modrinth:server-i18n-api:${property("deps.server_i18n_api")}")
 }
 
 fabricApi {
@@ -110,11 +113,13 @@ publishMods {
         projectId = property("publish.modrinth") as String
         accessToken = env.MODRINTH_API_KEY.orNull()
         minecraftVersions.addAll(supportedMinecraftVersions)
+        requires("server-i18n-api")
     }
 
     curseforge {
         projectId = property("publish.curseforge") as String
         accessToken = env.CURSEFORGE_API_KEY.orNull()
         minecraftVersions.addAll(supportedMinecraftVersions)
+        requires("server-i18n-api")
     }
 }

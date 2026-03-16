@@ -14,12 +14,15 @@ jsonlang {
 
 repositories {
     maven("https://maven.parchmentmc.org") { name = "ParchmentMC" }
+    maven("https://api.modrinth.com/maven/") { name = "Modrinth Maven" }
 }
 
 dependencies {
     annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
     modImplementation("io.github.llamalad7:mixinextras-common:0.2.0")?.let { annotationProcessor(it) }
     modImplementation("io.github.llamalad7:mixinextras-forge:0.2.0")?.let { jarJar(it) }
+
+    modImplementation("maven.modrinth:server-i18n-api:${property("deps.server_i18n_api")}")
 }
 
 legacyForge {
@@ -134,11 +137,13 @@ publishMods {
         projectId = property("publish.modrinth") as String
         accessToken = env.MODRINTH_API_KEY.orNull()
         minecraftVersions.addAll(supportedMinecraftVersions)
+        requires("server-i18n-api")
     }
 
     curseforge {
         projectId = property("publish.curseforge") as String
         accessToken = env.CURSEFORGE_API_KEY.orNull()
         minecraftVersions.addAll(supportedMinecraftVersions)
+        requires("server-i18n-api")
     }
 }

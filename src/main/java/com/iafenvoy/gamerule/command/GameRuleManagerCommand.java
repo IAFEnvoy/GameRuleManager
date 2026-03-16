@@ -1,11 +1,11 @@
 package com.iafenvoy.gamerule.command;
 
 import com.iafenvoy.gamerule.config.GameRuleData;
+import com.iafenvoy.server.i18n.ServerI18n;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.DimensionArgument;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 
@@ -37,7 +37,7 @@ public final class GameRuleManagerCommand {
     }
 
     private static int list(CommandContext<CommandSourceStack> ctx) {
-        ctx.getSource().sendSystemMessage(Component.literal("Current created for: " + GameRuleData.list().stream().map(ResourceKey::location).map(ResourceLocation::toString).collect(Collectors.joining(", "))));
+        ServerI18n.sendMessage(ctx.getSource(), "message.gamerule_manager.list", GameRuleData.list().stream().map(ResourceKey::location).map(ResourceLocation::toString).collect(Collectors.joining(", ")));
         return 1;
     }
 }
