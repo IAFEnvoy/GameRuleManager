@@ -2,7 +2,7 @@ package com.iafenvoy.gamerule.mixin;
 
 import com.iafenvoy.gamerule.config.GameRuleData;
 import com.iafenvoy.server.i18n.ServerI18nExceptionType;
-import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import com.llamalad7.mixinextras.injector./*? !forge {*/v2./*?}*/WrapWithCondition;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;

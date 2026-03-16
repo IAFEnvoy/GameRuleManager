@@ -21,7 +21,7 @@ import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 public class GameRuleManagerNeoForge {
     public GameRuleManagerNeoForge() {
         //? <=1.20.6 {
-        /*NeoForge.EVENT_BUS.addListener(TheRulerNeoForge::registerServerListener);
+        /*NeoForge.EVENT_BUS.addListener(GameRuleManagerNeoForge::registerServerListener);
          *///?}
     }
 
