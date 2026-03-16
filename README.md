@@ -1,19 +1,45 @@
-This mod can lock any game rules in all saves. (Include modded ones)
+# GameRule Manager
 
-Fell free to use this mod in your modpack.
+This mod provide new ways to control gamerules.
+
+## Features
+
+- Change default gamerule values. (Via config)
+- Lock specific gamerule. (Via config)
+- Set gamerule standalone for each dimension. (Via command)
 
 ## How to use
 
-For example, you want to force set `doDaylightCycle` to `false`
+### Config
 
-1.Open file `.minecraft/config/the_ruler.json`. If this file is not existed, create it.
+Config file is at `.minecraft/config/gamerule_manager.json`. If this file is not existed, create it. Example:
 
-2.Write the following contents:
-
-```json
+```json5
 {
-  "doDaylightCycle": false
+  //Apply to all dimension
+  "default": {
+    "doDaylightCycle": false,
+    "doMobSpawning": {
+      "value": false,
+      "lock": true //Lock key is optional
+    },
+    "doTraderSpawning": {
+      "value": false,
+      "lock": false
+    }
+  },
+  //Apply to specific dimension. NOTE: You need to use "/gamerulemanager" to split out first to apply
+  "minecraft:overworld": {
+    "keepInventory": {
+      "value": true,
+      "lock": true
+    }
+  }
 }
 ```
 
-3.Run `/reload` (If you on a server) and rejoin the world.
+### Command
+
+`/gamerulemanager <create/remove/list>`: Used to control whether specific dimension use standalone gamerules.
+
+Once you split out, you can join that dimension and use `/gamerule` to change gamerule only for that dimension.

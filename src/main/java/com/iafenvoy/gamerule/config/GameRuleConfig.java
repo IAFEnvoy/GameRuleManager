@@ -17,6 +17,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -35,6 +36,7 @@ public enum GameRuleConfig implements ResourceManagerReloadListener {
     }
 
     public static Map<String, ObjectBooleanPair<String>> getDefault() {
+        if (CONFIG.isEmpty()) loadConfig();
         return CONFIG.getOrDefault(DEFAULT, new HashMap<>());
     }
 
@@ -42,11 +44,14 @@ public enum GameRuleConfig implements ResourceManagerReloadListener {
         return CONFIG.getOrDefault(level, new HashMap<>());
     }
 
+
+    public static Optional<ObjectBooleanPair<String>> getSingle(ResourceKey<Level> level, String key) {
+        Optional<ObjectBooleanPair<String>> result = Optional.ofNullable(CONFIG.get(level)).map(x -> x.get(key));
+        return result.isPresent() ? result : Optional.ofNullable(CONFIG.get(DEFAULT)).map(x -> x.get(key));
+    }
+
     public static boolean isLocked(ResourceKey<Level> level, String key) {
-        Optional<Boolean> result = Optional.ofNullable(CONFIG.get(level)).map(x -> x.get(key)).map(ObjectBooleanPair::rightBoolean);
-        if (result.isEmpty())
-            result = Optional.ofNullable(CONFIG.get(DEFAULT)).map(x -> x.get(key)).map(ObjectBooleanPair::rightBoolean);
-        return result.orElse(false);
+        return getSingle(level, key).map(ObjectBooleanPair::rightBoolean).orElse(false);
     }
 
     public static void loadConfig() {
@@ -71,7 +76,7 @@ public enum GameRuleConfig implements ResourceManagerReloadListener {
         for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
             ResourceLocation id = RLUtil.tryParse(entry.getKey());
             if (!(entry.getValue() instanceof JsonObject jsonObject) || id == null) continue;
-            CONFIG.put(ResourceKey.create(Registries.DIMENSION, id), parseForLevel(jsonObject));
+            CONFIG.put(Objects.equals(entry.getKey(), DEFAULT_KEY) ? DEFAULT : ResourceKey.create(Registries.DIMENSION, id), parseForLevel(jsonObject));
         }
     }
 

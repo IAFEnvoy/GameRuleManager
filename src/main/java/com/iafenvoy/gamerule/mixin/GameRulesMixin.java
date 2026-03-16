@@ -33,6 +33,6 @@ public class GameRulesMixin {
         Map<String, ObjectBooleanPair<String>> defaults = GameRuleConfig.getDefault();
         for (Map.Entry<GameRules.Key<?>, GameRules.Value<?>> entry : rules.entrySet())
             if (defaults.containsKey(entry.getKey().getId()))
-                ((GameRules$RuleAccessor) entry.getValue()).theRuler$deserialize(defaults.get(entry.getKey().getId()).left());
+                ((GameRules$RuleAccessor) entry.getValue()).gameRuleManager$deserialize(defaults.get(entry.getKey().getId()).left());
     }
 }

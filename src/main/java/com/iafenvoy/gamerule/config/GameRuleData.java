@@ -20,12 +20,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class GameRuleData {
-    private static final LevelResource PATH = LevelResourceAccessor.theRuler$newInstance("gamerule_manager.json");
+    private static final LevelResource PATH = LevelResourceAccessor.gameRuleManager$newInstance("gamerule_manager.json");
     private static final Codec<Map<ResourceKey<Level>, GameRules>> CODEC = Codec.unboundedMap(ResourceKey.codec(Registries.DIMENSION), GameRuleCodec.CODEC);
     private static final Map<ResourceKey<Level>, GameRules> DATA = new HashMap<>();
 
@@ -36,7 +34,7 @@ public class GameRuleData {
         } catch (FileNotFoundException e) {
             save(server);
         } catch (Exception e) {
-           GameRuleManager.LOGGER.error("Failed to load config", e);
+            GameRuleManager.LOGGER.error("Failed to load world config", e);
         }
     }
 
@@ -44,34 +42,50 @@ public class GameRuleData {
         try {
             FileUtils.write(server.getWorldPath(PATH).toFile(), CODEC.encodeStart(JsonOps.INSTANCE, DATA).resultOrPartial(GameRuleManager.LOGGER::error).orElseThrow().toString(), StandardCharsets.UTF_8);
         } catch (Exception ex) {
-            GameRuleManager.LOGGER.error("Failed to create config", ex);
+            GameRuleManager.LOGGER.error("Failed to create world config", ex);
         }
     }
 
-    public static void create(ResourceKey<Level> level) {
-        DATA.computeIfAbsent(level, GameRuleData::createEmpty);
+    public static void forceSetLockRules(MinecraftServer server) {
+        GameRuleManager.LOGGER.info("Trying to force set all locked gamerules");
+        apply(server.getGameRules(), GameRuleConfig.getDefault(), true);
+        for (Map.Entry<ResourceKey<Level>, GameRules> entry : DATA.entrySet())
+            apply(entry.getValue(), GameRuleConfig.get(entry.getKey()), true);
     }
 
-    public static void remove(ResourceKey<Level> level) {
+    public static void create(MinecraftServer server, ResourceKey<Level> level) {
+        DATA.computeIfAbsent(level, GameRuleData::createEmpty);
+        save(server);
+    }
+
+    public static void remove(MinecraftServer server, ResourceKey<Level> level) {
         DATA.remove(level);
+        save(server);
     }
 
     private static GameRules createEmpty(ResourceKey<Level> level) {
         GameRules gameRules = new GameRules(/*? >=1.21.2 {*/FeatureFlags.DEFAULT_FLAGS/*?}*/);
-        Map<String, ObjectBooleanPair<String>> rules = GameRuleConfig.get(level);
+        apply(gameRules, GameRuleConfig.get(level), false);
+        return gameRules;
+    }
+
+    private static void apply(GameRules gameRules, Map<String, ObjectBooleanPair<String>> rules, boolean lockOnly) {
         /*? >=1.21.2 {*/
         gameRules/*?} else {*//*GameRules*//*?}*/.visitGameRuleTypes(new GameRules.GameRuleTypeVisitor() {
             @Override
             public <T extends GameRules.Value<T>> void visit(@NotNull GameRules.Key<T> key, @NotNull GameRules.Type<T> type) {
                 String name = key.getId();
-                if (rules.containsKey(name))
-                    ((GameRules$RuleAccessor) gameRules.getRule(key)).theRuler$deserialize(rules.get(name).left());
+                if (rules.containsKey(name) && (!lockOnly || rules.get(name).rightBoolean()))
+                    ((GameRules$RuleAccessor) gameRules.getRule(key)).gameRuleManager$deserialize(rules.get(name).left());
             }
         });
-        return gameRules;
     }
 
     public static Optional<GameRules> get(ResourceKey<Level> level) {
         return Optional.ofNullable(DATA.get(level));
+    }
+
+    public static Collection<ResourceKey<Level>> list() {
+        return DATA.keySet();
     }
 }

@@ -7,5 +7,5 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(GameRules.Value.class)
 public interface GameRules$RuleAccessor {
     @Invoker("deserialize")
-    void theRuler$deserialize(String value);
+    void gameRuleManager$deserialize(String value);
 }

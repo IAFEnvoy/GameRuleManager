@@ -19,7 +19,7 @@ public final class GameRuleCodec {
             public <T extends GameRules.Value<T>> void visit(@NotNull GameRules.Key<T> key, @NotNull GameRules.Type<T> type) {
                 String name = key.getId();
                 if (m.containsKey(name))
-                    ((GameRules$RuleAccessor) gameRules.getRule(key)).theRuler$deserialize(m.get(name));
+                    ((GameRules$RuleAccessor) gameRules.getRule(key)).gameRuleManager$deserialize(m.get(name));
             }
         });
         return gameRules;

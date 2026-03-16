@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(LevelResource.class)
 public interface LevelResourceAccessor {
     @Invoker("<init>")
-    static LevelResource theRuler$newInstance(String relativePath) {
+    static LevelResource gameRuleManager$newInstance(String relativePath) {
         throw new AssertionError("This method should be replaced by Mixin.");
     }
 }
