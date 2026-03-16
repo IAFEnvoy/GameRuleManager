@@ -18,8 +18,8 @@ repositories {
 
 dependencies {
     annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
-//    modImplementation("io.github.llamalad7:mixinextras-common:0.2.0")?.let { annotationProcessor(it) }
-//    modImplementation("io.github.llamalad7:mixinextras-forge:0.2.0")?.let { jarJar(it) }
+    modImplementation("io.github.llamalad7:mixinextras-common:0.2.0")?.let { annotationProcessor(it) }
+    modImplementation("io.github.llamalad7:mixinextras-forge:0.2.0")?.let { jarJar(it) }
 }
 
 legacyForge {

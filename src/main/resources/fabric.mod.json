@@ -16,11 +16,11 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.iafenvoy.ruler._loader.fabric.TheRulerFabric"
+      "com.iafenvoy.gamerule._loader.fabric.GameRuleManagerFabric"
     ]
   },
   "mixins": [
-    "the_ruler.mixins.json"
+    "gamerule_manager.mixins.json"
   ],
   "depends": {
     "minecraft": [${supported_minecraft_versions}]

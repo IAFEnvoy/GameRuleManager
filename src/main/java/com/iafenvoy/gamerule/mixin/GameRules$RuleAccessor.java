@@ -1,4 +1,4 @@
-package com.iafenvoy.ruler.mixin;
+package com.iafenvoy.gamerule.mixin;
 
 import net.minecraft.world.level.GameRules;
 import org.spongepowered.asm.mixin.Mixin;

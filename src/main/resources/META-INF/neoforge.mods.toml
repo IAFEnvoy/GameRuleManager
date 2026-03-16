@@ -24,4 +24,4 @@ type = "required"
 versionRange = "${supported_minecraft_versions}"
 
 [[mixins]]
-config = "the_ruler.mixins.json"
+config = "gamerule_manager.mixins.json"
