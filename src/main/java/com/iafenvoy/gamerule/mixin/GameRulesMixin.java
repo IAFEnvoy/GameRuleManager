@@ -1,7 +1,6 @@
 package com.iafenvoy.gamerule.mixin;
 
 import com.iafenvoy.gamerule.config.GameRuleConfig;
-import it.unimi.dsi.fastutil.objects.ObjectBooleanPair;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.level.GameRules;
 import org.spongepowered.asm.mixin.Mixin;
@@ -30,9 +29,9 @@ public class GameRulesMixin {
     @Inject(method = /*? >=1.21.2 {*/"<init>(Ljava/util/Map;Lnet/minecraft/world/flag/FeatureFlagSet;)V"/*?} else {*//*"<init>(Ljava/util/Map;)V"*//*?}*/, at = @At("RETURN"))
     private void setDefaultRules(Map<GameRules.Key<?>, GameRules.Value<?>> rules, /*? >=1.21.2 {*/FeatureFlagSet enabledFeatures, /*?}*/CallbackInfo ci) {
         //We will only apply default ones here, others will be applied in GameRuleManager
-        Map<String, ObjectBooleanPair<String>> defaults = GameRuleConfig.getDefault();
+        Map<String, GameRuleConfig.GameRuleEntry> defaults = GameRuleConfig.getDefault().gamerules();
         for (Map.Entry<GameRules.Key<?>, GameRules.Value<?>> entry : rules.entrySet())
             if (defaults.containsKey(entry.getKey().getId()))
-                ((GameRules$RuleAccessor) entry.getValue()).gameRuleManager$deserialize(defaults.get(entry.getKey().getId()).left());
+                ((GameRules$RuleAccessor) entry.getValue()).gameRuleManager$deserialize(defaults.get(entry.getKey().getId()).value());
     }
 }

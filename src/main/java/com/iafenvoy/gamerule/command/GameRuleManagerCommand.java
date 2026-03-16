@@ -26,13 +26,13 @@ public final class GameRuleManagerCommand {
 
     private static int create(CommandContext<CommandSourceStack> ctx) {
         CommandSourceStack source = ctx.getSource();
-        GameRuleData.create(source.getServer(), source.getLevel().dimension());
+        GameRuleData.create(source.getServer(), source.getLevel());
         return 1;
     }
 
     private static int remove(CommandContext<CommandSourceStack> ctx) {
         CommandSourceStack source = ctx.getSource();
-        GameRuleData.remove(source.getServer(), source.getLevel().dimension());
+        GameRuleData.remove(source.getServer(), source.getLevel());
         return 1;
     }
 

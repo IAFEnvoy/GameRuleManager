@@ -23,5 +23,10 @@ modId = "minecraft"
 type = "required"
 versionRange = "${supported_minecraft_versions}"
 
+[[dependencies.${mod_id}]]
+modId = "server_i18n_api"
+mandatory = true
+versionRange = "[1,)"
+
 [[mixins]]
 config = "gamerule_manager.mixins.json"

@@ -12,7 +12,11 @@ This mod provide new ways to control gamerules.
 
 ### Config
 
-Config file is at `.minecraft/config/gamerule_manager.json`. If this file is not existed, create it. Example:
+There are 2 config files
+
+#### Global config
+
+Config file is at `.minecraft/config/gamerule_manager/default.json`. If this file is not existed, create it. Example:
 
 ```json5
 {
@@ -21,17 +25,34 @@ Config file is at `.minecraft/config/gamerule_manager.json`. If this file is not
     "doDaylightCycle": false,
     "doMobSpawning": {
       "value": false,
-      "lock": true //Lock key is optional
+      //Lock key is optional
+      "lock": true
     },
     "doTraderSpawning": {
       "value": false,
       "lock": false
     }
   },
-  //Apply to specific dimension. NOTE: You need to use "/gamerulemanager" to split out first to apply
+  "difficulty": "easy"
+}
+```
+
+#### Dimension specific config
+
+Config file is at `.minecraft/config/gamerule_manager/specific.json`. If this file is not existed, create it. Example:
+
+```json5
+{
+  //Dimension id, NOTE: You need to use "/gamerulemanager" to split out first to apply
   "minecraft:overworld": {
-    "keepInventory": {
-      "value": true,
+    "gamerules": {
+      "keepInventory": {
+        "value": true,
+        "lock": true
+      }
+    },
+    "difficulty": {
+      "value": "hard",
       "lock": true
     }
   }
@@ -42,4 +63,5 @@ Config file is at `.minecraft/config/gamerule_manager.json`. If this file is not
 
 `/gamerulemanager <create/remove/list>`: Used to control whether specific dimension use standalone gamerules.
 
-Once you split out, you can join that dimension and use `/gamerule` to change gamerule only for that dimension.
+Once you split out, you can join that dimension and use `/gamerule` and `/difficulty` to change gamerule and difficulty
+only for that dimension.

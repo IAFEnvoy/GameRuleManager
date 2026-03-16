@@ -22,3 +22,8 @@ side = "BOTH"
 modId = "minecraft"
 mandatory = true
 versionRange = "${supported_minecraft_versions}"
+
+[[dependencies.${mod_id}]]
+modId = "server_i18n_api"
+mandatory = true
+versionRange = "[1,)"

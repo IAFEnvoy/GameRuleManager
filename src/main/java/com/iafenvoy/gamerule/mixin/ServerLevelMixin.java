@@ -15,6 +15,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class ServerLevelMixin {
     @Inject(method = "getGameRules", at = @At("HEAD"), cancellable = true)
     private void modifyLevelGameRules(CallbackInfoReturnable<GameRules> cir) {
-        GameRuleData.get(((Level) (Object) this).dimension()).ifPresent(cir::setReturnValue);
+        GameRuleData.get(((Level) (Object) this).dimension()).map(GameRuleData.LevelDataEntry::getGameRules).ifPresent(cir::setReturnValue);
     }
 }

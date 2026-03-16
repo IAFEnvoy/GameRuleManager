@@ -1,4 +1,5 @@
 {
   "message.gamerule_manager.list": "目前已创建独立规则的维度：%s",
-  "message.gamerule_manager.locked": "此游戏规则已被GameRule Manager锁定， 将配置中的lock键设置为false以解锁"
+  "message.gamerule_manager.gamerule_locked": "此游戏规则已被GameRule Manager锁定， 将配置中的lock键设置为false以解锁",
+  "message.gamerule_manager.difficulty_locked": "难度已被GameRule Manager锁定， 将配置中的lock键设置为false以解锁"
 }

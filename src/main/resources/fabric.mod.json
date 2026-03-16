@@ -23,6 +23,7 @@
     "gamerule_manager.mixins.json"
   ],
   "depends": {
-    "minecraft": [${supported_minecraft_versions}]
+    "minecraft": [${supported_minecraft_versions}],
+    "server_i18n_api": "*"
   }
 }

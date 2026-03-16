@@ -2,30 +2,31 @@ package com.iafenvoy.gamerule.config;
 
 import com.google.gson.JsonParser;
 import com.iafenvoy.gamerule.GameRuleManager;
-import com.iafenvoy.gamerule.mixin.GameRules$RuleAccessor;
 import com.iafenvoy.gamerule.mixin.LevelResourceAccessor;
 import com.iafenvoy.gamerule.util.GameRuleCodec;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
-import it.unimi.dsi.fastutil.objects.ObjectBooleanPair;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
 import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Function;
 
 public class GameRuleData {
     private static final LevelResource PATH = LevelResourceAccessor.gameRuleManager$newInstance("gamerule_manager.json");
-    private static final Codec<Map<ResourceKey<Level>, GameRules>> CODEC = Codec.unboundedMap(ResourceKey.codec(Registries.DIMENSION), GameRuleCodec.CODEC);
-    private static final Map<ResourceKey<Level>, GameRules> DATA = new HashMap<>();
+    private static final Codec<Map<ResourceKey<Level>, LevelDataEntry>> CODEC = Codec.unboundedMap(ResourceKey.codec(Registries.DIMENSION), LevelDataEntry.CODEC);
+    private static final Map<ResourceKey<Level>, LevelDataEntry> DATA = new HashMap<>();
 
     public static void load(MinecraftServer server) {
         DATA.clear();
@@ -47,41 +48,30 @@ public class GameRuleData {
     }
 
     public static void forceSetLockRules(MinecraftServer server) {
-        GameRuleManager.LOGGER.info("Trying to force set all locked gamerules");
-        apply(server.getGameRules(), GameRuleConfig.getDefault(), true);
-        for (Map.Entry<ResourceKey<Level>, GameRules> entry : DATA.entrySet())
-            apply(entry.getValue(), GameRuleConfig.get(entry.getKey()), true);
+        GameRuleManager.LOGGER.info("Trying to lock set all locked gamerules and difficulty");
+        GameRuleConfig.getDefault().apply(server.getGameRules(), d -> server.setDifficulty(d, false), true);
+        for (Map.Entry<ResourceKey<Level>, LevelDataEntry> entry : DATA.entrySet())
+            GameRuleConfig.get(entry.getKey()).apply(entry.getValue().getGameRules(), entry.getValue()::setDifficulty, true);
     }
 
-    public static void create(MinecraftServer server, ResourceKey<Level> level) {
-        DATA.computeIfAbsent(level, GameRuleData::createEmpty);
+    public static void create(MinecraftServer server, ServerLevel level) {
+        LevelDataEntry entry = DATA.computeIfAbsent(level.dimension(), l -> createEmpty(l, server.getWorldData().getDifficulty()));
+        GameRuleConfig.get(level.dimension()).apply(level.getGameRules(), entry::setDifficulty, true);
         save(server);
     }
 
-    public static void remove(MinecraftServer server, ResourceKey<Level> level) {
-        DATA.remove(level);
+    public static void remove(MinecraftServer server, ServerLevel level) {
+        DATA.remove(level.dimension());
         save(server);
     }
 
-    private static GameRules createEmpty(ResourceKey<Level> level) {
+    private static LevelDataEntry createEmpty(ResourceKey<Level> level, Difficulty difficulty) {
         GameRules gameRules = new GameRules(/*? >=1.21.2 {*/FeatureFlags.DEFAULT_FLAGS/*?}*/);
-        apply(gameRules, GameRuleConfig.get(level), false);
-        return gameRules;
+        GameRuleConfig.get(level).apply(gameRules);
+        return new LevelDataEntry(gameRules, difficulty);
     }
 
-    private static void apply(GameRules gameRules, Map<String, ObjectBooleanPair<String>> rules, boolean lockOnly) {
-        /*? >=1.21.2 {*/
-        gameRules/*?} else {*//*GameRules*//*?}*/.visitGameRuleTypes(new GameRules.GameRuleTypeVisitor() {
-            @Override
-            public <T extends GameRules.Value<T>> void visit(@NotNull GameRules.Key<T> key, @NotNull GameRules.Type<T> type) {
-                String name = key.getId();
-                if (rules.containsKey(name) && (!lockOnly || rules.get(name).rightBoolean()))
-                    ((GameRules$RuleAccessor) gameRules.getRule(key)).gameRuleManager$deserialize(rules.get(name).left());
-            }
-        });
-    }
-
-    public static Optional<GameRules> get(ResourceKey<Level> level) {
+    public static Optional<LevelDataEntry> get(ResourceKey<Level> level) {
         return Optional.ofNullable(DATA.get(level));
     }
 
@@ -89,13 +79,45 @@ public class GameRuleData {
         return DATA.keySet();
     }
 
-    public static Optional<ObjectBooleanPair<String>> getSingle(ResourceKey<Level> level, String key) {
-        Optional<ObjectBooleanPair<String>> result = Optional.empty();
-        if (DATA.containsKey(level)) result = Optional.ofNullable(GameRuleConfig.get(level)).map(x -> x.get(key));
-        return result.isPresent() ? result : Optional.ofNullable(GameRuleConfig.getDefault()).map(x -> x.get(key));
+    public static Optional<GameRuleConfig.GameRuleEntry> getSingleGameRule(ResourceKey<Level> level, String key) {
+        return DATA.containsKey(level) ? Optional.ofNullable(GameRuleConfig.get(level)).map(GameRuleConfig.LevelGameRuleConfig::gamerules).map(x -> x.get(key)) : Optional.empty();
     }
 
-    public static boolean isLocked(ResourceKey<Level> level, String key) {
-        return getSingle(level, key).map(ObjectBooleanPair::rightBoolean).orElse(false);
+    public static Optional<GameRuleConfig.DifficultyEntry> getDifficulty(ResourceKey<Level> level) {
+        return DATA.containsKey(level) ? Optional.ofNullable(GameRuleConfig.get(level)).map(GameRuleConfig.LevelGameRuleConfig::difficulty).flatMap(Function.identity()) : Optional.empty();
+    }
+
+    public static boolean isGameRuleLocked(ResourceKey<Level> level, String key) {
+        return getSingleGameRule(level, key).map(GameRuleConfig.GameRuleEntry::lock).orElse(false);
+    }
+
+    public static boolean isDifficultyLocked(ResourceKey<Level> level) {
+        return getDifficulty(level).map(GameRuleConfig.DifficultyEntry::lock).orElse(false);
+    }
+
+    public static final class LevelDataEntry {
+        public static final Codec<LevelDataEntry> CODEC = RecordCodecBuilder.create(i -> i.group(
+                GameRuleCodec.CODEC.fieldOf("gamerules").forGetter(LevelDataEntry::getGameRules),
+                Difficulty.CODEC.fieldOf("difficulty").forGetter(LevelDataEntry::getDifficulty)
+        ).apply(i, LevelDataEntry::new));
+        private final GameRules gameRules;
+        private Difficulty difficulty;
+
+        public LevelDataEntry(GameRules gameRules, Difficulty difficulty) {
+            this.gameRules = gameRules;
+            this.difficulty = difficulty;
+        }
+
+        public GameRules getGameRules() {
+            return gameRules;
+        }
+
+        public Difficulty getDifficulty() {
+            return difficulty;
+        }
+
+        public void setDifficulty(Difficulty difficulty) {
+            this.difficulty = difficulty;
+        }
     }
 }

@@ -1,4 +1,5 @@
 {
   "message.gamerule_manager.list": "Current created standalone gamerule for: %s",
-  "message.gamerule_manager.locked": "This gamerule has been locked by GameRule Manager, unlock it by changing \"lock\" key in config to false"
+  "message.gamerule_manager.gamerule_locked": "This gamerule has been locked by GameRule Manager, unlock it by changing \"lock\" key in config to false",
+  "message.gamerule_manager.difficulty_locked": "Difficulty has been locked by GameRule Manager, unlock it by changing \"lock\" key in config to false"
 }

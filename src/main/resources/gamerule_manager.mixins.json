@@ -7,9 +7,11 @@
   ],
   "mixins": [
     "CommandsMixin",
+    "DifficultyCommandMixin",
     "GameRuleCommandMixin",
     "GameRules$RuleAccessor",
     "GameRulesMixin",
+    "LevelAccessorMixin",
     "LevelResourceAccessor",
     "MinecraftServerMixin",
     "ServerLevelMixin"
