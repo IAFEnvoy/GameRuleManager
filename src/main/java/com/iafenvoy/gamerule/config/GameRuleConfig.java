@@ -34,8 +34,9 @@ public enum GameRuleConfig implements ResourceManagerReloadListener {
     private static final String DEFAULT_PATH = "./config/gamerule_manager/default.json";
     private static final String SPECIFIC_PATH = "./config/gamerule_manager/specific.json";
     private static final Codec<Map<ResourceLocation, LevelGameRuleConfig>> CODEC = Codec.unboundedMap(ResourceLocation.CODEC, LevelGameRuleConfig.CODEC);
-    private static LevelGameRuleConfig DEFAULT = null;
+    private static LevelGameRuleConfig DEFAULT = new LevelGameRuleConfig(Map.of(), Optional.empty());
     private static final Map<ResourceLocation, LevelGameRuleConfig> SPECIFIC = new HashMap<>();
+    private static final boolean INITIALIZED;
 
     @Override
     public void onResourceManagerReload(@NotNull ResourceManager manager) {
@@ -44,19 +45,20 @@ public enum GameRuleConfig implements ResourceManagerReloadListener {
 
     static {
         loadConfig();
+        INITIALIZED = true;
     }
 
     public static void loadConfig() {
         try {
             DEFAULT = LevelGameRuleConfig.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseReader(new FileReader(DEFAULT_PATH))).resultOrPartial(GameRuleManager.LOGGER::error).orElseThrow();
         } catch (Exception e) {
-            GameRuleManager.LOGGER.error("Failed to read file {}", DEFAULT_PATH, e);
+            if (!INITIALIZED) GameRuleManager.LOGGER.error("Failed to read file {}", DEFAULT_PATH, e);
         }
         try {
             SPECIFIC.clear();
             SPECIFIC.putAll(CODEC.parse(JsonOps.INSTANCE, JsonParser.parseReader(new FileReader(SPECIFIC_PATH))).resultOrPartial(GameRuleManager.LOGGER::error).orElseThrow());
         } catch (Exception e) {
-            GameRuleManager.LOGGER.error("Failed to read file {}", SPECIFIC_PATH, e);
+            if (!INITIALIZED) GameRuleManager.LOGGER.error("Failed to read file {}", SPECIFIC_PATH, e);
         }
     }
 
