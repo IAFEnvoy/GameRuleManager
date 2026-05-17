@@ -4,10 +4,12 @@ import com.iafenvoy.gamerule.config.GameRuleData;
 import com.iafenvoy.server.i18n.ServerI18n;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.DimensionArgument;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 
 import java.util.stream.Collectors;
 
@@ -24,15 +26,17 @@ public final class GameRuleManagerCommand {
         );
     }
 
-    private static int create(CommandContext<CommandSourceStack> ctx) {
+    private static int create(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         CommandSourceStack source = ctx.getSource();
-        GameRuleData.create(source.getServer(), source.getLevel());
+        ServerLevel level = DimensionArgument.getDimension(ctx, "dimension");
+        GameRuleData.create(source.getServer(), level);
         return 1;
     }
 
-    private static int remove(CommandContext<CommandSourceStack> ctx) {
+    private static int remove(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         CommandSourceStack source = ctx.getSource();
-        GameRuleData.remove(source.getServer(), source.getLevel());
+        ServerLevel level = DimensionArgument.getDimension(ctx, "dimension");
+        GameRuleData.remove(source.getServer(), level);
         return 1;
     }
 
