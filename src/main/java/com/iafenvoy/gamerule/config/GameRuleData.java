@@ -20,8 +20,8 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.NoSuchFileException;
 import java.util.*;
-import java.util.function.Function;
 
 public class GameRuleData {
     private static final LevelResource PATH = LevelResourceAccessor.gameRuleManager$newInstance("gamerule_manager.json");
@@ -32,7 +32,7 @@ public class GameRuleData {
         DATA.clear();
         try {
             DATA.putAll(CODEC.parse(JsonOps.INSTANCE, JsonParser.parseString(FileUtils.readFileToString(server.getWorldPath(PATH).toFile(), StandardCharsets.UTF_8))).resultOrPartial(GameRuleManager.LOGGER::error).orElseThrow());
-        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException | NoSuchFileException e) {
             save(server);
         } catch (Exception e) {
             GameRuleManager.LOGGER.error("Failed to load world config", e);
@@ -80,11 +80,15 @@ public class GameRuleData {
     }
 
     public static Optional<GameRuleConfig.GameRuleEntry> getSingleGameRule(ResourceKey<Level> level, String key) {
-        return DATA.containsKey(level) ? Optional.ofNullable(GameRuleConfig.get(level)).map(GameRuleConfig.LevelGameRuleConfig::gamerules).map(x -> x.get(key)) : Optional.empty();
+        return Optional.ofNullable(getActiveConfig(level).gamerules().get(key));
     }
 
     public static Optional<GameRuleConfig.DifficultyEntry> getDifficulty(ResourceKey<Level> level) {
-        return DATA.containsKey(level) ? Optional.ofNullable(GameRuleConfig.get(level)).map(GameRuleConfig.LevelGameRuleConfig::difficulty).flatMap(Function.identity()) : Optional.empty();
+        return getActiveConfig(level).difficulty();
+    }
+
+    private static GameRuleConfig.LevelGameRuleConfig getActiveConfig(ResourceKey<Level> level) {
+        return DATA.containsKey(level) ? GameRuleConfig.get(level) : GameRuleConfig.getDefault();
     }
 
     public static boolean isGameRuleLocked(ResourceKey<Level> level, String key) {

@@ -21,7 +21,7 @@ Config file is at `.minecraft/config/gamerule_manager/default.json`. If this fil
 ```json5
 {
   //Apply to all dimension
-  "default": {
+  "gamerules": {
     "doDaylightCycle": false,
     "doMobSpawning": {
       "value": false,
@@ -33,7 +33,10 @@ Config file is at `.minecraft/config/gamerule_manager/default.json`. If this fil
       "lock": false
     }
   },
-  "difficulty": "easy"
+  "difficulty": {
+    "value": "easy",
+    "lock": true
+  }
 }
 ```
 

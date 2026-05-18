@@ -28,7 +28,7 @@ public class DifficultyCommandMixin {
 
     @WrapWithCondition(method = "setDifficulty", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;setDifficulty(Lnet/minecraft/world/Difficulty;Z)V"))
     private static boolean changeSetGameRules(MinecraftServer instance, Difficulty difficulty, boolean forced, @Local(ordinal = 0, argsOnly = true) CommandSourceStack source) {
-        return GameRuleData.get(source.getLevel().dimension()).isPresent();
+        return GameRuleData.get(source.getLevel().dimension()).isEmpty();
     }
 
     @Inject(method = "setDifficulty", at = @At("RETURN"))

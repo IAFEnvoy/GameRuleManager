@@ -1,6 +1,7 @@
 package com.iafenvoy.gamerule.config;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.iafenvoy.gamerule.GameRuleManager;
@@ -19,6 +20,9 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -50,20 +54,37 @@ public enum GameRuleConfig implements ResourceManagerReloadListener {
 
     public static void loadConfig() {
         try {
-            DEFAULT = LevelGameRuleConfig.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseReader(new FileReader(DEFAULT_PATH))).resultOrPartial(GameRuleManager.LOGGER::error).orElseThrow();
+            DEFAULT = LevelGameRuleConfig.CODEC.parse(JsonOps.INSTANCE, readJsonOrCreate(DEFAULT_PATH)).resultOrPartial(GameRuleManager.LOGGER::error).orElseThrow();
         } catch (Exception e) {
             if (!INITIALIZED) GameRuleManager.LOGGER.error("Failed to read file {}", DEFAULT_PATH, e);
         }
         try {
             SPECIFIC.clear();
-            SPECIFIC.putAll(CODEC.parse(JsonOps.INSTANCE, JsonParser.parseReader(new FileReader(SPECIFIC_PATH))).resultOrPartial(GameRuleManager.LOGGER::error).orElseThrow());
+            SPECIFIC.putAll(CODEC.parse(JsonOps.INSTANCE, readJsonOrCreate(SPECIFIC_PATH)).resultOrPartial(GameRuleManager.LOGGER::error).orElseThrow());
         } catch (Exception e) {
             if (!INITIALIZED) GameRuleManager.LOGGER.error("Failed to read file {}", SPECIFIC_PATH, e);
         }
     }
 
+    private static JsonElement readJsonOrCreate(String path) throws IOException {
+        Path file = Path.of(path);
+        if (Files.notExists(file)) {
+            Path parent = file.getParent();
+            if (parent != null) Files.createDirectories(parent);
+            Files.writeString(file, "{}", StandardCharsets.UTF_8);
+            return JsonParser.parseString("{}");
+        }
+        try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            return JsonParser.parseReader(reader);
+        }
+    }
+
     public static LevelGameRuleConfig getDefault() {
         return DEFAULT;
+    }
+
+    public static Optional<Difficulty> getLockedDefaultDifficulty() {
+        return DEFAULT.difficulty().filter(DifficultyEntry::lock).map(DifficultyEntry::value);
     }
 
     public static LevelGameRuleConfig get(ResourceKey<Level> level) {
