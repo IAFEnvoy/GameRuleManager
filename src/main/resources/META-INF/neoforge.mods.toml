@@ -21,12 +21,14 @@ side = "BOTH"
 [[dependencies.${mod_id}]]
 modId = "minecraft"
 type = "required"
-versionRange = "${supported_minecraft_versions}"
+versionRange = "${minecraft_version_range_neoforge}"
 
 [[dependencies.${mod_id}]]
 modId = "server_i18n_api"
-mandatory = true
+type = "required"
 versionRange = "[1,)"
+ordering = "NONE"
+side = "BOTH"
 
 [[mixins]]
 config = "gamerule_manager.mixins.json"

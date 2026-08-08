@@ -1,10 +1,12 @@
+import java.util.LinkedList
+
 plugins {
     id("net.neoforged.moddev")
     id("dev.kikugie.postprocess.jsonlang")
     id("me.modmuss50.mod-publish-plugin")
 }
 
-version = "${property("mod.version")}-${property("deps.minecraft")}-neoforge"
+version = "${property("mod.version")}-${property("deps.minecraft")}-universal"
 base.archivesName = property("mod.id") as String
 
 jsonlang {
@@ -13,23 +15,21 @@ jsonlang {
 }
 
 repositories {
-    maven("https://maven.parchmentmc.org") { name = "ParchmentMC" }
-    maven("https://api.modrinth.com/maven/") { name = "Modrinth Maven" }
+    maven("https://maven.fabricmc.net/") { name = "Fabric" }
+    maven("https://maven.terraformersmc.com/") { name = "ModMenu" }
+    maven("https://cursemaven.com") { name = "CurseMaven" }
 }
 
 dependencies {
-    implementation("maven.modrinth:server-i18n-api:${property("deps.server_i18n_api")}")
+    compileOnly("net.fabricmc:fabric-loader:${property("deps.fabric-loader")}")
+    compileOnly("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric-api")}")
+    compileOnly("com.terraformersmc:modmenu:${property("deps.mod_menu")}")
+    implementation("curse.maven:server-i18n-api-1278793:8328775")
 }
 
 neoForge {
     version = property("deps.neoforge") as String
     validateAccessTransformers = true
-
-    if (hasProperty("deps.parchment")) parchment {
-        val (mc, ver) = (property("deps.parchment") as String).split(':')
-        mappingsVersion = ver
-        minecraftVersion = mc
-    }
 
     runs {
         register("client") {
@@ -51,10 +51,6 @@ neoForge {
 }
 
 tasks {
-    processResources {
-        exclude("**/fabric.mod.json", "**/*.accesswidener", "**/mods.toml")
-    }
-
     named("createMinecraftArtifacts") {
         dependsOn("stonecutterGenerate")
     }
@@ -69,21 +65,18 @@ tasks {
 
 java {
     withSourcesJar()
-    val javaCompat = if (stonecutter.eval(stonecutter.current.version, ">=1.20.5")) JavaVersion.VERSION_21
-    else throw IllegalArgumentException("This template only support NeoForge on 1.20.5+ but version ${stonecutter.current.version} received!")
-    sourceCompatibility = javaCompat
-    targetCompatibility = javaCompat
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
-val supportedMinecraftVersions: List<String> = com.google.common.collect.ImmutableList.builder<String>()
-    .addAll(
-        (property("publish.additionalVersions") as String?)
-            ?.split(",")
-            ?.map { it.trim() }
-            ?.filter { it.isNotEmpty() }
-            ?: emptyList())
-    .add(stonecutter.current.version)
-    .build()
+val supportedMinecraftVersions = LinkedList<String>()
+supportedMinecraftVersions.addAll(
+    (property("publish.additionalVersions") as String?)
+        ?.split(",")
+        ?.map { it.trim() }
+        ?.filter { it.isNotEmpty() }
+        ?: emptyList())
+supportedMinecraftVersions.add(stonecutter.current.version)
 
 tasks.named<ProcessResources>("processResources") {
     val props = HashMap<String, String>().apply {
@@ -95,10 +88,11 @@ tasks.named<ProcessResources>("processResources") {
         this["mod_repo_url"] = project.property("mod.repo_url") as String
         this["mod_license"] = project.property("mod.license") as String
         this["mod_logo"] = project.property("mod.logo") as String
-        this["supported_minecraft_versions"] = supportedMinecraftVersions.joinToString(",") { x -> "[${x}]" }
+        this["minecraft_version_range_neoforge"] = project.property("deps.minecraft_version_range_neoforge") as String
+        this["minecraft_version_range_fabric"] = project.property("deps.minecraft_version_range_fabric") as String
     }
 
-    filesMatching(listOf("fabric.mod.json", "META-INF/neoforge.mods.toml", "META-INF/mods.toml")) {
+    filesMatching(listOf("fabric.mod.json", "META-INF/neoforge.mods.toml")) {
         expand(props)
     }
 }
@@ -111,22 +105,16 @@ publishMods {
     type = if (modVersion.contains("alpha")) ALPHA
     else if (modVersion.contains("beta")) BETA
     else STABLE
-    displayName = "${property("mod.name")} ${property("mod.version")} for ${stonecutter.current.version} Neoforge"
-    version = "${property("mod.version")}-${property("deps.minecraft")}-neoforge"
+    displayName = "${property("mod.name")} ${property("mod.version")} for ${stonecutter.current.version} Universal"
+    version = "${property("mod.version")}-${property("deps.minecraft")}" 
     changelog = provider { rootProject.file("CHANGELOG.md").readText() }
-    modLoaders.add("neoforge")
-
-    modrinth {
-        projectId = property("publish.modrinth") as String
-        accessToken = env.MODRINTH_API_KEY.orNull()
-        minecraftVersions.addAll(supportedMinecraftVersions)
-        requires("server-i18n-api")
-    }
+    modLoaders.addAll("neoforge", "fabric")
 
     curseforge {
         projectId = property("publish.curseforge") as String
         accessToken = env.CURSEFORGE_API_KEY.orNull()
         minecraftVersions.addAll(supportedMinecraftVersions)
         requires("server-i18n-api")
+        serverRequired = true
     }
 }

@@ -2,7 +2,6 @@ package com.iafenvoy.gamerule.config;
 
 import com.google.gson.JsonParser;
 import com.iafenvoy.gamerule.GameRuleManager;
-import com.iafenvoy.gamerule.mixin.LevelResourceAccessor;
 import com.iafenvoy.gamerule.util.GameRuleCodec;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
@@ -13,7 +12,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.flag.FeatureFlags;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
 import org.apache.commons.io.FileUtils;
@@ -24,7 +23,7 @@ import java.nio.file.NoSuchFileException;
 import java.util.*;
 
 public class GameRuleData {
-    private static final LevelResource PATH = LevelResourceAccessor.gameRuleManager$newInstance("gamerule_manager.json");
+    private static final LevelResource PATH = new LevelResource("gamerule_manager.json");
     private static final Codec<Map<ResourceKey<Level>, LevelDataEntry>> CODEC = Codec.unboundedMap(ResourceKey.codec(Registries.DIMENSION), LevelDataEntry.CODEC);
     private static final Map<ResourceKey<Level>, LevelDataEntry> DATA = new HashMap<>();
 

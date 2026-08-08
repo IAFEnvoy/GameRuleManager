@@ -5,17 +5,17 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.iafenvoy.gamerule.GameRuleManager;
-import com.iafenvoy.gamerule.mixin.GameRules$RuleAccessor;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRule;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,9 +37,9 @@ public enum GameRuleConfig implements ResourceManagerReloadListener {
     INSTANCE;
     private static final String DEFAULT_PATH = "./config/gamerule_manager/default.json";
     private static final String SPECIFIC_PATH = "./config/gamerule_manager/specific.json";
-    private static final Codec<Map<ResourceLocation, LevelGameRuleConfig>> CODEC = Codec.unboundedMap(ResourceLocation.CODEC, LevelGameRuleConfig.CODEC);
+    private static final Codec<Map<Identifier, LevelGameRuleConfig>> CODEC = Codec.unboundedMap(Identifier.CODEC, LevelGameRuleConfig.CODEC);
     private static LevelGameRuleConfig DEFAULT = new LevelGameRuleConfig(Map.of(), Optional.empty());
-    private static final Map<ResourceLocation, LevelGameRuleConfig> SPECIFIC = new HashMap<>();
+    private static final Map<Identifier, LevelGameRuleConfig> SPECIFIC = new HashMap<>();
     private static final boolean INITIALIZED;
 
     @Override
@@ -88,7 +88,7 @@ public enum GameRuleConfig implements ResourceManagerReloadListener {
     }
 
     public static LevelGameRuleConfig get(ResourceKey<Level> level) {
-        return DEFAULT.combine(SPECIFIC.get(level.location()));
+        return DEFAULT.combine(SPECIFIC.get(level.identifier()));
     }
 
     public record LevelGameRuleConfig(Map<String, GameRuleEntry> gamerules, Optional<DifficultyEntry> difficulty) {
@@ -111,16 +111,16 @@ public enum GameRuleConfig implements ResourceManagerReloadListener {
         }
 
         public void apply(GameRules gameRules, Consumer<Difficulty> difficultySetter, boolean lockOnly) {
-            /*? >=1.21.2 {*/
-            gameRules/*?} else {*//*GameRules*//*?}*/.visitGameRuleTypes(new GameRules.GameRuleTypeVisitor() {
-                @Override
-                public <T extends GameRules.Value<T>> void visit(@NotNull GameRules.Key<T> key, @NotNull GameRules.Type<T> type) {
-                    String name = key.getId();
-                    if (gamerules.containsKey(name) && (!lockOnly || gamerules.get(name).lock()))
-                        ((GameRules$RuleAccessor) gameRules.getRule(key)).gameRuleManager$deserialize(gamerules.get(name).value());
-                }
+            gameRules.availableRules().forEach(rule -> {
+                GameRuleEntry entry = gamerules.get(rule.id());
+                if (entry != null && (!lockOnly || entry.lock())) applyRule(gameRules, rule, entry.value());
             });
             this.difficulty.filter(x -> x.lock).map(x -> x.value).ifPresent(difficultySetter);
+        }
+
+        private static <T> void applyRule(GameRules gameRules, GameRule<T> rule, String value) {
+            rule.deserialize(value).resultOrPartial(GameRuleManager.LOGGER::warn)
+                    .ifPresent(parsed -> gameRules.set(rule, parsed, null));
         }
     }
 

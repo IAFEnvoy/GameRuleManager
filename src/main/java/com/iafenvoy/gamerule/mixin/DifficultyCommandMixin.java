@@ -2,7 +2,7 @@ package com.iafenvoy.gamerule.mixin;
 
 import com.iafenvoy.gamerule.config.GameRuleData;
 import com.iafenvoy.server.i18n.ServerI18nExceptionType;
-import com.llamalad7.mixinextras.injector./*? !forge {*/v2./*?}*/WrapWithCondition;
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
@@ -27,7 +27,7 @@ public class DifficultyCommandMixin {
     }
 
     @WrapWithCondition(method = "setDifficulty", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;setDifficulty(Lnet/minecraft/world/Difficulty;Z)V"))
-    private static boolean changeSetGameRules(MinecraftServer instance, Difficulty difficulty, boolean forced, @Local(ordinal = 0, argsOnly = true) CommandSourceStack source) {
+    private static boolean changeSetGameRules(MinecraftServer instance, Difficulty difficulty, boolean ignoreLock, @Local(argsOnly = true, name = "source") CommandSourceStack source) {
         return GameRuleData.get(source.getLevel().dimension()).isEmpty();
     }
 

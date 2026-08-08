@@ -8,7 +8,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.DimensionArgument;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerLevel;
 
 import java.util.stream.Collectors;
@@ -19,7 +20,7 @@ import static net.minecraft.commands.Commands.literal;
 public final class GameRuleManagerCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(literal("gamerulemanager")
-                .requires(source -> source.hasPermission(2))
+                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .then(literal("create").then(argument("dimension", DimensionArgument.dimension()).executes(GameRuleManagerCommand::create)))
                 .then(literal("remove").then(argument("dimension", DimensionArgument.dimension()).executes(GameRuleManagerCommand::remove)))
                 .then(literal("list").executes(GameRuleManagerCommand::list))
@@ -41,7 +42,7 @@ public final class GameRuleManagerCommand {
     }
 
     private static int list(CommandContext<CommandSourceStack> ctx) {
-        ServerI18n.sendMessage(ctx.getSource(), "message.gamerule_manager.list", GameRuleData.list().stream().map(ResourceKey::location).map(ResourceLocation::toString).collect(Collectors.joining(", ")));
+        ServerI18n.sendMessage(ctx.getSource(), "message.gamerule_manager.list", GameRuleData.list().stream().map(ResourceKey::identifier).map(Identifier::toString).collect(Collectors.joining(", ")));
         return 1;
     }
 }
